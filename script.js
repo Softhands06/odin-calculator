@@ -19,7 +19,7 @@ function divide(a, b) {
     return a / b;
 }
 
-// Step 2: Define the Operate Function
+// Operate Function
 function operate(operator, num1, num2) {
     switch (operator) {
         case '+':
@@ -35,58 +35,75 @@ function operate(operator, num1, num2) {
     }
 }
 
-// Step 3: Declare Variables
-let firstNumber = '';
-let secondNumber = '';
-let currentOperator = '';
-let shouldResetDisplay = false;
+// Variables 
+var currentInput = '';
+var num1 = null;
+var currentOperator = null;
+var display = document.getElementById('display');
 
-const display = document.getElementById('display');
+// Function to update display
+function updateDisplay(value) {
+    display.value = value;
+}
 
-// Step 4: Handle Button Clicks
-document.querySelectorAll('.btn').forEach(button => {
-    button.addEventListener('click', () => {
-        const value = button.getAttribute('data-value');
+// Function to handle number button clicks
+function handleNumberClick(value) {
+    currentInput += value; // Append the clicked number
+    updateDisplay(currentInput);
+}
 
-        if (value >= '0' && value <= '9') {
-            if (shouldResetDisplay) {
-                display.value = '';
-                shouldResetDisplay = false;
-            }
-            display.value += value;
-        } else if (value === 'C') {
-            clearCalculator();
-        } else if (value === '=') {
-            if (firstNumber && currentOperator && display.value) {
-                secondNumber = display.value;
-                const result = operate(currentOperator, parseFloat(firstNumber), parseFloat(secondNumber));
-                display.value = result;
-                firstNumber = result; // Update firstNumber to the result
-                secondNumber = '';
-                currentOperator = '';
-                shouldResetDisplay = true;
-            }
-        } else {
-            // Handle operator buttons
-            if (!firstNumber) {
-                firstNumber = display.value; // Set firstNumber if it's not already set
-            } else if (currentOperator && display.value) {
-                secondNumber = display.value;
-                const result = operate(currentOperator, parseFloat(firstNumber), parseFloat(secondNumber));
-                display.value = result;
-                firstNumber = result; // Update firstNumber to the result
-                secondNumber = ''; // Reset secondNumber
-            }
-            currentOperator = value; // Update the current operator
-        }
+// Function to handle operator button clicks
+function handleOperatorClick(operator) {
+    if (currentInput === '') return; // Prevent operation if no number is entered
+
+    if (num1 === null) {
+        num1 = parseFloat(currentInput);
+    } else if (currentOperator) {
+        // If an operator was already selected, calculate the result
+        num1 = operate(currentOperator, num1, parseFloat(currentInput));
+        updateDisplay(num1);
+    }
+
+    currentOperator = operator; // Set the new operator
+    currentInput = ''; // Clear current input for next number
+}
+
+// Function to handle equals button click
+function handleEqualsClick() {
+    if (currentInput === '' || num1 === null || currentOperator === null) return;
+
+    var result = operate(currentOperator, num1, parseFloat(currentInput));
+    updateDisplay(result);
+    // Reset for the next calculation
+    num1 = result; // Store the result for the next operation
+    currentInput = ''; // Clear current input
+    currentOperator = null; // Reset operator
+}
+
+// Function to handle clear button click
+function handleClearClick() {
+    currentInput = '';
+    num1 = null;
+    currentOperator = null;
+    updateDisplay('');
+}
+
+// listeners to number buttons
+var numberButtons = document.querySelectorAll('.btn:not(.operator)');
+numberButtons.forEach(function(button) {
+    button.addEventListener('click', function() {
+        handleNumberClick(button.getAttribute('data-value'));
     });
 });
 
-// Clear function
-function clearCalculator() {
-    firstNumber = '';
-    secondNumber = '';
-    currentOperator = '';
-    display.value = '';
-    shouldResetDisplay = false;
-}
+// listeners to operator buttons
+var operatorButtons = document.querySelectorAll('.operator');
+operatorButtons.forEach(function(button) {
+    button.addEventListener('click', function() {
+        handleOperatorClick(button.getAttribute('data-value'));
+    });
+});
+
+// listeners for equals and clear buttons
+document.getElementById('equal').addEventListener('click', handleEqualsClick);
+document.getElementById('clear').addEventListener('click', handleClearClick);
